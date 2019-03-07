@@ -35,4 +35,20 @@ public final class Util {
     {
         return THE_UNSAFE;
     }
+
+    /**
+     * 计算所提供整数以log以2为底的对数，本质上报告位置最高位的
+     * @param i 用于计算log2的值
+     * @return
+     */
+    public static int log2(int i)
+    {
+        int r = 0;
+        while ((i >>= 1) != 0)
+        {
+            ++r;
+        }
+        return r;
+    }
+
 }
