@@ -40,13 +40,15 @@ public class Sequence extends RhsPadding {
         }
     }
 
+    /**
+     * 默认初始value为-1
+     */
     public Sequence()
     {
         this(INITIAL_VALUE);
     }
 
 
-    // 创建具有指定初始值的序列
     public Sequence(final long initialValue)
     {
         UNSAFE.putOrderedLong(this, VALUE_OFFSET, initialValue);
@@ -57,13 +59,7 @@ public class Sequence extends RhsPadding {
         return value;
     }
 
-    /**
-     * Perform an ordered write of this sequence.  The intent is
-     * a Store/Store barrier between this write and any previous
-     * store.
-     *
-     * @param value The new value for the sequence.
-     */
+    // 利用Unsafe更新value的地址内存上的值从而更新value的值
     public void set(final long value)
     {
         UNSAFE.putOrderedLong(this, VALUE_OFFSET, value);
@@ -71,17 +67,18 @@ public class Sequence extends RhsPadding {
 
 
     /**
-     * Performs a volatile write of this sequence.  The intent is
-     * a Store/Store barrier between this write and any previous
-     * write and a Store/Load barrier between this write and any
-     * subsequent volatile read.
-     *
-     * @param value The new value for the sequence.
+     * 利用Unsafe原子更新value
      */
     public void setVolatile(final long value)
     {
         UNSAFE.putLongVolatile(this, VALUE_OFFSET, value);
     }
 
-
+    /**
+     * 利用Unsafe CAS
+     */
+    public boolean compareAndSet(final long expectedValue, final long newValue)
+    {
+        return UNSAFE.compareAndSwapLong(this, VALUE_OFFSET, expectedValue, newValue);
+    }
 }
