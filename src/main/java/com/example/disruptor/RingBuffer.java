@@ -173,6 +173,17 @@ public class RingBuffer<E>  extends RingBufferFields<E> implements Cursored, Eve
         return new RingBuffer<E>(factory, sequencer);
     }
 
+    /**
+     * 创建一个新的SequenceBarrier,事件处理器将使用它来跟踪哪些消息
+     * 可从给定要跟踪的序列列表的环形缓冲区中读取
+     * @param sequencesToTrack  要跟踪的附加序列
+     * @return  一个将跟踪指定序列的序列屏障
+     */
+    public SequenceBarrier newBarrier(Sequence... sequencesToTrack)
+    {
+        return sequencer.newBarrier(sequencesToTrack);
+    }
+
     public long getCursor() {
         return 0;
     }
