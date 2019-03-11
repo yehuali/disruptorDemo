@@ -13,4 +13,13 @@ public interface Sequencer extends Cursored, Sequenced {
      * @return 一个将跟踪指定序列的序列屏障
      */
     SequenceBarrier newBarrier(Sequence... sequencesToTrack);
+
+    /**
+     * 指定gating sequences到Disruptor实例中，他们将安全原子地添加到gating sequences列表中
+     * @param gatingSequences
+     */
+    void addGatingSequences(Sequence... gatingSequences);
+
+    boolean removeGatingSequence(Sequence sequence);
+
 }

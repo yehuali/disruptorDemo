@@ -1,10 +1,11 @@
 package com.example.test;
 
 public class LongEvent {
-    private long value;
+    Object data ;
+    Object ext;
 
-    public void set(long value)
-    {
-        this.value = value;
+    @Override
+    public String toString() {
+        return "DisruptorDSLExample[data:"+this.data+",ext:"+ext+"]";
     }
 }

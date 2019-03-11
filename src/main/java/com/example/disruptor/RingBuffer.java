@@ -1,5 +1,6 @@
 package com.example.disruptor;
 
+import com.example.disruptor.dsl.ProducerType;
 import com.example.disruptor.util.Util;
 import sun.misc.Unsafe;
 
@@ -147,6 +148,32 @@ public class RingBuffer<E>  extends RingBufferFields<E> implements Cursored, Eve
         super(eventFactory, sequencer);
     }
 
+
+    public static <E> RingBuffer<E> create(
+            ProducerType producerType,
+            EventFactory<E> factory,
+            int bufferSize,
+            WaitStrategy waitStrategy)
+    {
+        switch (producerType)
+        {
+            case SINGLE:
+                return createSingleProducer(factory, bufferSize, waitStrategy);
+            case MULTI:
+                return createMultiProducer(factory, bufferSize, waitStrategy);
+            default:
+                throw new IllegalStateException(producerType.toString());
+        }
+    }
+
+    public static <E> RingBuffer<E> createSingleProducer(
+            EventFactory<E> factory,
+            int bufferSize,
+            WaitStrategy waitStrategy)
+    {
+        return null;
+    }
+
     /**
      * 新建一个多生产者的RingBuffer，使用默认等待策略{@link BlockingWaitStrategy}
      */
@@ -189,10 +216,72 @@ public class RingBuffer<E>  extends RingBufferFields<E> implements Cursored, Eve
     }
 
     public E get(long sequence) {
-        return null;
+        return elementAt(sequence);
     }
 
     public int getBufferSize() {
         return 0;
+    }
+
+    @Override
+    public long next() {
+        return 0;
+    }
+
+    @Override
+    public long next(int n) {
+        return 0;
+    }
+
+    @Override
+    public void publish(long sequence) {
+
+    }
+
+    @Override
+    public void publishEvent(EventTranslator<E> translator) {
+        final long sequence = sequencer.next();
+        translateAndPublish(translator, sequence);
+    }
+
+    @Override
+    public <A> void publishEvent(EventTranslatorOneArg<E, A> translator, A arg0) {
+        final long sequence = sequencer.next();
+        translateAndPublish(translator, sequence, arg0);
+    }
+
+    private <A> void translateAndPublish(EventTranslatorOneArg<E, A> translator, long sequence, A arg0)
+    {
+        try
+        {
+            translator.translateTo(get(sequence), sequence, arg0);
+        }
+        finally
+        {
+            sequencer.publish(sequence);
+        }
+    }
+
+    private void translateAndPublish(EventTranslator<E> translator, long sequence) {
+        try {
+            translator.translateTo(get(sequence), sequence);
+        }finally {
+            sequencer.publish(sequence);
+        }
+    }
+
+    public void addGatingSequences(Sequence... gatingSequences)
+    {
+        sequencer.addGatingSequences(gatingSequences);
+    }
+
+    /**
+     * 从这个ringBuffer中删除指定的序列。
+     * @param sequence
+     * @return
+     */
+    public boolean removeGatingSequence(Sequence sequence)
+    {
+        return sequencer.removeGatingSequence(sequence);
     }
 }

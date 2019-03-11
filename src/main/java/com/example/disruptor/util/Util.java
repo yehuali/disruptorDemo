@@ -1,5 +1,6 @@
 package com.example.disruptor.util;
 
+import com.example.disruptor.Sequence;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -49,6 +50,21 @@ public final class Util {
             ++r;
         }
         return r;
+    }
+
+    /**
+     *从{@link Sequence}数组中获取最小序列
+     *
+     * @param sequences
+     * @param minimum
+     * @return
+     */
+    public static long getMinimumSequence(final Sequence[] sequences, long minimum){
+        for (int i = 0, n = sequences.length; i < n; i++){
+            long value = sequences[i].get();
+            minimum = Math.min(minimum, value);
+        }
+        return minimum;
     }
 
 }

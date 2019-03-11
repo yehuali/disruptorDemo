@@ -1,10 +1,6 @@
 package com.example.disruptor.dsl;
 
-import com.example.disruptor.EventFactory;
-import com.example.disruptor.RingBuffer;
-import com.example.disruptor.Sequence;
-import com.example.disruptor.SequenceBarrier;
-import javafx.event.EventHandler;
+import com.example.disruptor.*;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
@@ -31,6 +27,20 @@ public class Disruptor<T> {
 
     private final ConsumerRepository<T> consumerRepository = new ConsumerRepository<>();
     private final AtomicBoolean started = new AtomicBoolean(false);
+    private ExceptionHandler<? super T> exceptionHandler = new ExceptionHandlerWrapper<>();
+
+
+    public Disruptor(
+            final EventFactory<T> eventFactory,
+            final int ringBufferSize,
+            final ThreadFactory threadFactory,
+            final ProducerType producerType,
+            final WaitStrategy waitStrategy)
+    {
+        this(
+                RingBuffer.create(producerType, eventFactory, ringBufferSize, waitStrategy),
+                new BasicExecutor(threadFactory));
+    }
 
     /**
      * 新建Disruptor,默认为{BlockingWaitStrategy}和 {@link ProducerType}.MULTI
@@ -60,8 +70,14 @@ public class Disruptor<T> {
     /**
      * 设置事件处理程序来处理来自环形缓冲区的事件,这些处理程序将处理事件
      * 这个方法可以作为一个链的开始,例如，如果处理程序<code>A</code>必须处理事件之前的处理程序<code>B</code>
+
      * < pre > <code> dw.handleEventsWith (A) (B), < /code> < / pre >
      * 这个调用是附加的，但是通常在设置Disruptor实例</p>时应该只调用一次
+     *
+     * 可变参数是使用数组存储的，而数组和泛型不能很好的混合使用
+     *  -->数组元素的数据类型在编译和运行时都是确定的，而泛型的数据类型只是在运行时才能确定下来
+     *      --->编译器在编译阶段无法检查数据类型是否匹配，会给出警告
+     *          --->@SafeVarargs注解消除警告消息
      * @param handlers
      * @return {@link EventHandlerGroup}可以用来链接依赖项
      */
@@ -100,4 +116,46 @@ public class Disruptor<T> {
 
         return new EventHandlerGroup<>(this, consumerRepository, processorSequences);
     }
+
+    private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequences, final Sequence[] processorSequences)
+    {
+        if (processorSequences.length > 0)
+        {
+            ringBuffer.addGatingSequences(processorSequences);
+            for (final Sequence barrierSequence : barrierSequences)
+            {
+                ringBuffer.removeGatingSequence(barrierSequence);
+            }
+            consumerRepository.unMarkEventProcessorsAsEndOfChain(barrierSequences);
+        }
+    }
+
+    /**
+     * 发布事件到ring buffer
+     */
+    public <A> void publishEvent(final EventTranslatorOneArg<T, A> eventTranslator, final A arg)
+    {
+        ringBuffer.publishEvent(eventTranslator, arg);
+    }
+
+    public RingBuffer<T> start()
+    {
+        checkOnlyStartedOnce();
+        for (final ConsumerInfo consumerInfo : consumerRepository)
+        {
+            consumerInfo.start(executor);
+        }
+
+        return ringBuffer;
+    }
+
+    private void checkOnlyStartedOnce()
+    {
+        if (!started.compareAndSet(false, true))
+        {
+            throw new IllegalStateException("Disruptor.start() must only be called once.");
+        }
+    }
+
+
 }
