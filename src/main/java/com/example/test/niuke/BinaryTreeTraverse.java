@@ -157,5 +157,26 @@ public class BinaryTreeTraverse {
         }
     }
 
+    public static void main(String[] args) {
+        int a = 4;
+        do{
+            if(a <= 5){
+                System.out.println("a<=5");
+                a = add(a);
+                if(a == 6){
+                    System.out.println("a==6");
+                    continue;
+                }
+                System.out.println("xxxxxx");
+            }else if(a>=6){
+                System.out.println("yyyyy");
+                break;
+            }
+        }while(true);
+    }
+
+    public static  int add(int a){
+        return a +1;
+    }
 
 }

@@ -31,4 +31,26 @@ public final class ProcessingSequenceBarrier implements SequenceBarrier{
     public void clearAlert() {
         alerted = false;
     }
+
+    @Override
+    public long waitFor(long sequence) throws Exception {
+        checkAlert();
+        long availableSequence = waitStrategy.waitFor(sequence, cursorSequence, dependentSequence, this);
+        if (availableSequence < sequence) {
+            return availableSequence;
+        }
+        /**
+         * 获取消费者可以消费的最大的可用序号，支持批处理效应，提升处理效率
+         *
+         */
+        return sequencer.getHighestPublishedSequence(sequence, availableSequence);
+    }
+
+    @Override
+    public void checkAlert() throws Exception {
+        if (alerted)
+        {
+            throw new Exception("checkAlert发生异常");
+        }
+    }
 }

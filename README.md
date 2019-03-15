@@ -31,6 +31,19 @@
     - 一般电脑CPU缓存行是64字节
         - 一个缓存行可以存8个long类型的变量
             - 考虑极端情况（Cache line开头或者结尾是value）
+            
+6.  Disruptor工作流程总结
+    - 消费者注册
+    ![消费者注册](https://github.com/yehuali/disruptorDemo/blob/master/image/消费者注册.png)
+    - 初始化Disruptor流程（理清类之间的关系） 
+    ![初始化Disruptor流程](https://github.com/yehuali/disruptorDemo/blob/master/image/初始化Disruptor流程.jpg) 
+    - Disruptor启动流程（启动消费者线程）
+    ![Disruptor启动流程](https://github.com/yehuali/disruptorDemo/blob/master/image/Disruptor运行流程.jpg)
+    - Disruptor事件发布
+    ![Disruptor事件发布](https://github.com/yehuali/disruptorDemo/blob/master/image/Disruptor事件发布.jpg)          
+    - 消费者消费流程
+    ![消费者消费流程](https://github.com/yehuali/disruptorDemo/blob/master/image/消费者消费流程.jpg)
+            
    
                               
   

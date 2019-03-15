@@ -2,6 +2,12 @@ package com.example.disruptor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 为什么叫BatchEventProcessor
+ * --->可以看run()方法每次waitFor获取的availableSequence是当前能够使用的最大值，然后再循环处理这些数据
+ *     --->当消费者有瞬时抖动时，导致暂时落后生产者，可以在下一次循环中，批量处理落后的事件
+ * @param <T>
+ */
 public final class BatchEventProcessor<T> implements EventProcessor {
     private static final int IDLE = 0;
     private static final int HALTED = IDLE + 1;
@@ -39,8 +45,72 @@ public final class BatchEventProcessor<T> implements EventProcessor {
     public void run() {
         if (running.compareAndSet(IDLE, RUNNING)){
             sequenceBarrier.clearAlert();
+
+            notifyStart();
+            try{
+                if (running.get() == RUNNING){
+                    processEvents();
+                }
+            }finally {
+                notifyShutdown();
+                running.set(IDLE);
+            }
         }
 
+    }
+
+    private void processEvents(){
+        T event = null;
+        long nextSequence = sequence.get() + 1L;
+        while(true){
+            try{
+                // availableSequence返回的是可用的最大值
+                final long availableSequence = sequenceBarrier.waitFor(nextSequence);//使用给定的等待策略去等待下一个序列可用
+
+                //批处理在此处得以体现
+                while (nextSequence <= availableSequence){
+                    event = dataProvider.get(nextSequence);
+                    eventHandler.onEvent(event, nextSequence, nextSequence == availableSequence);
+                    nextSequence++;
+                }
+                //eventHandler处理完毕后，更新当前序号
+                sequence.set(availableSequence);
+
+            }catch (Exception e){
+
+            }
+
+        }
+    }
+
+    private void notifyShutdown()
+    {
+//        if (eventHandler instanceof LifecycleAware)
+//        {
+//            try
+//            {
+//                ((LifecycleAware) eventHandler).onShutdown();
+//            }
+//            catch (final Throwable ex)
+//            {
+//                exceptionHandler.handleOnShutdownException(ex);
+//            }
+//        }
+    }
+
+    private void notifyStart()
+    {
+//        if (eventHandler instanceof LifecycleAware)
+//        {
+//            try
+//            {
+//                ((LifecycleAware) eventHandler).onStart();
+//            }
+//            catch (final Throwable ex)
+//            {
+//                exceptionHandler.handleOnStartException(ex);
+//            }
+//        }
     }
 
 

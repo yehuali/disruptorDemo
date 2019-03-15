@@ -22,4 +22,18 @@ public interface Sequencer extends Cursored, Sequenced {
 
     boolean removeGatingSequence(Sequence sequence);
 
+    //确认序列是否已发布且事件可用;非阻塞
+    boolean isAvailable(long sequence);
+
+    /**
+     * 获取可以从环缓冲区安全地读取的最高序列号
+     * 根据在Sequencer实现中，此调用可能需要扫描多个值在Sequencer中，扫描范围从nextSequence到availableSequence
+     * 如果没有可用的值nextSequence，返回值将是nextSequence - 1
+     * 要正确工作，consumer 应该传递一个值比最后一个成功处理的序列高1
+     * @param nextSequence
+     * @param availableSequence
+     * @return
+     */
+    long getHighestPublishedSequence(long nextSequence, long availableSequence);
+
 }

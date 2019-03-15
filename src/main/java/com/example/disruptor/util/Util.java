@@ -52,6 +52,15 @@ public final class Util {
         return r;
     }
 
+    public static void main(String[] args) {
+        System.out.println(log2(9));
+    }
+
+    public static long getMinimumSequence(final Sequence[] sequences)
+    {
+        return getMinimumSequence(sequences, Long.MAX_VALUE);
+    }
+
     /**
      *从{@link Sequence}数组中获取最小序列
      *

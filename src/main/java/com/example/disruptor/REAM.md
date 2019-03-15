@@ -88,6 +88,20 @@
        - 消费者也要通过计算器在另一个消费者完成后确保它一次只处理一次消息
      ![Disruptor](http://ifeve.com/wp-content/uploads/2013/01/disruptor.png)  
      
+ ![生产者与消费者协同方式](https://images2015.cnblogs.com/blog/1047231/201702/1047231-20170208183601338-912624234.png)    
+- 在这个结构下，每个消费者拥有各自独立的事件序号Sequence，消费者之间不存在共享竞态
+- SequenceBarrier1监听RingBuffer的序号cursor，消费者B与C通过SequenceBarrier1等待可消费事件
+- SequenceBarrier2除了监听cursor，同时也监听B与C的序号Sequence，从而将最小的序号返回给消费者D，由此实现了D依赖B与C的逻辑
+
+![轮询消息并处理](https://pic1.zhimg.com/80/v2-24d185bac2b879459aa588cfa16651f0_hd.jpg)
+
+
+###　RingBuffer多生产者写入
+- 参考资料：https://www.alicharles.com/article/disruptor/disruptor-ringbuffer-muti-write/
+1.  多生产者MultiProducerSequencer申请下一个节点 
+   ![MultiProducerSequencer](https://www.alicharles.com/images/2016/09/20160905225141_94026.png)  
+   - 可能出现某些Entry正在被生产者写入但还没有提交的情况  
+    ![MultiProducerSequencer](https://www.alicharles.com/images/2016/09/20160905225159_84973.png)   
         
           
         

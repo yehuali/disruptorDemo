@@ -30,7 +30,7 @@ public class EventProcessorInfo<T> implements ConsumerInfo {
 
     @Override
     public void start(Executor executor) {
-
+        executor.execute(eventprocessor);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.example.disruptor;
 
+import com.example.disruptor.util.Util;
+
 import java.util.Arrays;
 
 /**
@@ -12,5 +14,10 @@ public class FixedSequenceGroup extends Sequence {
     public FixedSequenceGroup(Sequence[] sequences)
     {
         this.sequences = Arrays.copyOf(sequences, sequences.length);
+    }
+
+    @Override
+    public long get() {
+        return Util.getMinimumSequence(sequences);
     }
 }

@@ -5,4 +5,9 @@ package com.example.disruptor;
  */
 public interface SequenceBarrier {
     void clearAlert();
+
+    //等待给定的序列可供使用
+    long waitFor(long sequence) throws Exception;
+
+    void checkAlert() throws Exception;
 }
